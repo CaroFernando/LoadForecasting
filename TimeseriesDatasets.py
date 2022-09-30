@@ -6,10 +6,11 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 
 class TimeseriesOverlapDataset(Dataset):
-    def __init__(self, df, seqlen):
+    def __init__(self, df, seqlen, stride=1):
         # df is a datafame with columns 'time' datetime and 'value' float
         self.df = df
         self.seqlen = seqlen
+        self.stride = stride
 
         # data augmentation for time
         self.df['year'] = self.df['time'].dt.year
@@ -24,9 +25,12 @@ class TimeseriesOverlapDataset(Dataset):
 
         print(df.head(5))
 
+        self.timedata = np.array(self.df[['year', 'month', 'weekday', 'day', 'hour', 'minute']].values)
+        self.valuedata = np.array(self.df[['value']].values)
 
     def __len__(self):
-        return len(self.df) - self.seqlen * 2
+        # return the number of sequences taking into account the stride
+        return int((len(self.df) - self.seqlen * 2) / self.stride)
 
     def __getitem__(self, idx):
         # idx is the index of the first value in the sequence
@@ -34,9 +38,10 @@ class TimeseriesOverlapDataset(Dataset):
         # x is a sequence of seqlen values
         # y is a sequence of seqlen values
         # t is a sequence of seqlen time information
-        x = self.df.iloc[idx:idx+self.seqlen][['value']].values
-        t = self.df.iloc[idx:idx+self.seqlen][['year', 'month', 'weekday', 'day', 'hour', 'minute']].values
-        y = self.df.iloc[idx+self.seqlen:idx+self.seqlen*2][['value']].values
+        idx = idx * self.stride
+        x = self.valuedata[idx:idx + self.seqlen]
+        t = self.timedata[idx:idx + self.seqlen]
+        y = self.valuedata[idx + self.seqlen:idx + self.seqlen * 2]
 
         x = torch.from_numpy(x).float()
         t = torch.from_numpy(t).float()
@@ -63,6 +68,9 @@ class TimeseriesRollingDataset(Dataset):
 
         print(df.head(5))
 
+        self.timedata = np.array(self.df[['year', 'month', 'weekday', 'day', 'hour', 'minute']].values)
+        self.valuedata = np.array(self.df[['value']].values)
+
     def __len__(self):
         return len(self.df)//self.seqlen - 1
 
@@ -72,9 +80,10 @@ class TimeseriesRollingDataset(Dataset):
         # x is a sequence of seqlen values
         # y is a sequence of seqlen values
         # t is a sequence of seqlen time information
-        x = self.df.iloc[idx*self.seqlen:(idx+1)*self.seqlen][['value']].values
-        t = self.df.iloc[idx*self.seqlen:(idx+1)*self.seqlen][['year', 'month', 'weekday', 'day', 'hour', 'minute']].values
-        y = self.df.iloc[(idx+1)*self.seqlen:(idx+2)*self.seqlen][['value']].values
+        
+        x = self.valuedata[idx*self.seqlen:(idx+1)*self.seqlen]
+        t = self.timedata[idx*self.seqlen:(idx+1)*self.seqlen]
+        y = self.valuedata[(idx+1)*self.seqlen:(idx+2)*self.seqlen]
 
         x = torch.from_numpy(x).float()
         t = torch.from_numpy(t).float()
