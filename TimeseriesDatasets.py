@@ -64,7 +64,7 @@ class TimeseriesRollingDataset(Dataset):
         print(df.head(5))
 
     def __len__(self):
-        return len(self.df)//self.seqlen
+        return len(self.df)//self.seqlen - 1
 
     def __getitem__(self, idx):
         # idx is the index of the first value in the sequence
@@ -74,7 +74,7 @@ class TimeseriesRollingDataset(Dataset):
         # t is a sequence of seqlen time information
         x = self.df.iloc[idx*self.seqlen:(idx+1)*self.seqlen][['value']].values
         t = self.df.iloc[idx*self.seqlen:(idx+1)*self.seqlen][['year', 'month', 'weekday', 'day', 'hour', 'minute']].values
-        y = self.df.iloc[idx*self.seqlen:(idx+1)*self.seqlen][['value']].values
+        y = self.df.iloc[(idx+1)*self.seqlen:(idx+2)*self.seqlen][['value']].values
 
         x = torch.from_numpy(x).float()
         t = torch.from_numpy(t).float()

@@ -44,7 +44,7 @@ class ForecastTester:
         for model in self.models:
             self.testers.append(ForescastModelTester(model, self.trainds, self.valds, self.testds))
 
-    def train(self, epochs=10, lr=0.001, device='gpu'):
+    def train(self, epochs=20, lr=0.001, device='gpu'):
         for tester in self.testers:
             tester.train(epochs, lr, device)
 
