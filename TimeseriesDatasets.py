@@ -3,6 +3,7 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 import pandas as pd
 import numpy as np
+from sklearn.preprocessing import StandardScaler
 
 class TimeseriesOverlapDataset(Dataset):
     def __init__(self, df, seqlen):
@@ -18,6 +19,11 @@ class TimeseriesOverlapDataset(Dataset):
         self.df['hour'] = self.df['time'].dt.hour
         self.df['minute'] = self.df['time'].dt.minute
 
+        self.scaler = StandardScaler()
+        self.df['value'] = self.scaler.fit_transform(self.df['value'].values.reshape(-1, 1))
+
+        print(df.head(5))
+
 
     def __len__(self):
         return len(self.df) - self.seqlen * 2
@@ -31,6 +37,11 @@ class TimeseriesOverlapDataset(Dataset):
         x = self.df.iloc[idx:idx+self.seqlen][['value']].values
         t = self.df.iloc[idx:idx+self.seqlen][['year', 'month', 'weekday', 'day', 'hour', 'minute']].values
         y = self.df.iloc[idx+self.seqlen:idx+self.seqlen*2][['value']].values
+
+        x = torch.from_numpy(x).float()
+        t = torch.from_numpy(t).float()
+        y = torch.from_numpy(y).float()
+
         return x, t, y
 
 class TimeseriesRollingDataset(Dataset):
@@ -47,6 +58,11 @@ class TimeseriesRollingDataset(Dataset):
         self.df['hour'] = self.df['time'].dt.hour
         self.df['minute'] = self.df['time'].dt.minute
 
+        self.scaler = StandardScaler()
+        self.df['value'] = self.scaler.fit_transform(self.df['value'].values.reshape(-1, 1))
+
+        print(df.head(5))
+
     def __len__(self):
         return len(self.df)//self.seqlen
 
@@ -59,4 +75,9 @@ class TimeseriesRollingDataset(Dataset):
         x = self.df.iloc[idx*self.seqlen:(idx+1)*self.seqlen][['value']].values
         t = self.df.iloc[idx*self.seqlen:(idx+1)*self.seqlen][['year', 'month', 'weekday', 'day', 'hour', 'minute']].values
         y = self.df.iloc[idx*self.seqlen:(idx+1)*self.seqlen][['value']].values
+
+        x = torch.from_numpy(x).float()
+        t = torch.from_numpy(t).float()
+        y = torch.from_numpy(y).float()
+        
         return x, t, y

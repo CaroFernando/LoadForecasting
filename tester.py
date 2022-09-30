@@ -16,11 +16,11 @@ class ForescastModelTester:
         self.testds = testds
         self.batch_size = batch_size
 
-        self.traindl = DataLoader(self.trainds, batch_size=self.batch_size, shuffle=True)
-        self.valdl = DataLoader(self.valds, batch_size=self.batch_size, shuffle=True)
-        self.testdl = DataLoader(self.testds, batch_size=self.batch_size, shuffle=True)
+        self.traindl = DataLoader(self.trainds, batch_size=self.batch_size, shuffle=True, num_workers=1)
+        self.valdl = DataLoader(self.valds, batch_size=self.batch_size, shuffle=False, num_workers=1)
+        self.testdl = DataLoader(self.testds, batch_size=self.batch_size, shuffle=False, num_workers=1)
 
-    def train(self, epochs=10, lr=0.001, device='gpu'):
+    def train(self, epochs=20, lr=0.001, device='gpu'):
         trainer = pl.Trainer(gpus=1, max_epochs=epochs)
         trainer.fit(self.model, self.traindl, self.valdl)
 
