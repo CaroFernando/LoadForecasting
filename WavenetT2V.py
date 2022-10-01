@@ -9,16 +9,24 @@ import torch.optim as optim
 import pytorch_lightning as pl
 
 class Wavenet_t2v(pl.LightningModule):
-    def __init__(self, timesize, timeemb, kernelsize, config, dilatation_rates, outsize):
+    def __init__(self, inputsize, timesize, timeemb, kernelsize, config, dilatation_rates, outsize):
         super(Wavenet_t2v, self).__init__()
         self.blocks = nn.ModuleList()
 
         self.time_emb = t2v(timesize, timeemb)
+
+        self.fc = nn.Sequential(
+            nn.Linear(timeemb + inputsize, config[0]),
+            nn.ReLU(),
+            nn.Dropout(0.2)
+        )
+
         self.wavenet = WaveNet(kernelsize, config, dilatation_rates, outsize)
 
     def forward(self, x, t):
         t = self.time_emb(t)
         x = torch.cat((x, t), dim=2)
+        x = self.fc(x)
         x = self.wavenet(x)
         return x
 
@@ -44,4 +52,6 @@ class Wavenet_t2v(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        return optim.AdamW(self.parameters(), lr=0.001)
+        op = optim.AdamW(self.parameters(), lr=0.001)
+        
+        return op

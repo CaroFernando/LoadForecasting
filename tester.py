@@ -20,7 +20,7 @@ class ForescastModelTester:
         self.valdl = DataLoader(self.valds, batch_size=self.batch_size, shuffle=False, num_workers=1)
         self.testdl = DataLoader(self.testds, batch_size=self.batch_size, shuffle=False, num_workers=1)
 
-    def train(self, epochs=40):
+    def train(self, epochs=25):
         trainer = pl.Trainer(gpus=1, max_epochs=epochs)
         trainer.fit(self.model, self.traindl, self.valdl)
 
@@ -44,7 +44,7 @@ class ForecastTester:
         for model in self.models:
             self.testers.append(ForescastModelTester(model, self.trainds, self.valds, self.testds))
 
-    def train(self, epochs=40):
+    def train(self, epochs=25):
         for tester in self.testers:
             tester.train(epochs)
 
