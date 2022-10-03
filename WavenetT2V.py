@@ -30,6 +30,9 @@ class Wavenet_t2v(pl.LightningModule):
         x = self.wavenet(x)
         return x
 
+    def general_forward(self, x, t):
+        return self(x, t)
+
     def training_step(self, batch, batch_idx):
         x, t, y = batch
         y_hat = self(x, t)
@@ -52,6 +55,6 @@ class Wavenet_t2v(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        op = optim.AdamW(self.parameters(), lr=0.001)
+        op = optim.AdamW(self.parameters(), lr=0.0001)
         
         return op

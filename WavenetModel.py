@@ -50,19 +50,30 @@ class WaveNet(pl.LightningModule):
         x = self.fc(x)
         return x
 
+    def general_forward(self, x, t):
+        return self(x)
+
     def training_step(self, batch, batch_idx):
-        x, y = batch
+        x, t, y = batch
         y_hat = self(x)
         loss = F.mse_loss(y_hat, y)
-        self.log('train_loss', loss)
+        self.log('train_loss', loss, on_step = True)
         return loss
 
     def validation_step(self, batch, batch_idx):
-        x, y = batch
+        x, t, y = batch
         y_hat = self(x)
         loss = F.mse_loss(y_hat, y)
         self.log('val_loss', loss)
         return loss
 
+    def test_step(self, batch, batch_idx):
+        x, t, y = batch
+        y_hat = self(x)
+        loss = F.mse_loss(y_hat, y)
+        self.log('test_loss', loss)
+        return loss
+
     def configure_optimizers(self):
-        return optim.Adam(self.parameters(), lr=0.0001)
+        op = optim.AdamW(self.parameters(), lr=0.0001)
+        return op
