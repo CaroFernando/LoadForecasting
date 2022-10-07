@@ -10,14 +10,15 @@ from TimeseriesDatasets import TimeseriesOverlapDataset, TimeseriesRollingDatase
 
 if __name__ == "__main__":
     seqlens = [2*24, 2*24*7, 2*24*30]
+    seqlens = [2*24*30]
 
     for seqlen in seqlens:
 
         print("Seqlen: ", seqlen)
 
-        df = pd.read_csv('time_series_30min_singleindex.csv')
-        df['utc_timestamp'] = pd.to_datetime(df['utc_timestamp'])
-        time_load_df = df[['utc_timestamp', 'IE_load_actual_entsoe_transparency']]
+        df = pd.read_csv('load.csv')
+        df['datetime'] = pd.to_datetime(df['datetime'])
+        time_load_df = df[['datetime', 'load']]
 
 
         time_load_df = time_load_df.dropna()
@@ -25,9 +26,13 @@ if __name__ == "__main__":
 
         time_load_df.columns = ['time', 'value']
 
-        train_df = time_load_df[time_load_df['time'] < '2018-01-01']
-        val_df = time_load_df[(time_load_df['time'] >= '2018-01-01') & (time_load_df['time'] < '2018-07-01')]
-        test_df = time_load_df[(time_load_df['time'] >= '2018-07-01') & (time_load_df['time'] < '2020-01-01')]
+        # train 2006-01-01 to 2008-12-31
+        # val 2009-01-01 to 2009-12-31
+        # test 2010-01-01 to 2010-12-31
+
+        train_df = time_load_df[time_load_df['time'] < '2009-01-01']
+        val_df = time_load_df[(time_load_df['time'] >= '2009-01-01') & (time_load_df['time'] < '2010-01-01')]
+        test_df = time_load_df[time_load_df['time'] >= '2010-01-01']
 
         trainds = TimeseriesOverlapDataset(train_df, seqlen, stride = 10)
         valds = TimeseriesOverlapDataset(val_df, seqlen, stride = 10)
